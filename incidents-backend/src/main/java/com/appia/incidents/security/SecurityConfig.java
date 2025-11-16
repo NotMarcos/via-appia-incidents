@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import com.appia.incidents.exception.UnauthorizedException;
 
 import java.io.IOException;
 import java.util.List;
@@ -85,9 +86,7 @@ public class SecurityConfig {
                             .setAuthentication(auth);
 
                 } catch (JwtException e) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("Token inválido");
-                    return;
+                    throw new UnauthorizedException("Token inválido");
                 }
             }
 
