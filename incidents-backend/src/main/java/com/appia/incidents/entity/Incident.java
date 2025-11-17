@@ -22,7 +22,7 @@ public class Incident {
     private String responsavelEmail;
 
     @Column(columnDefinition = "text")
-    private String tags; // JSON string or comma-separated (simple)
+    private String tags;
 
     private Instant dataAbertura;
     private Instant dataAtualizacao;
