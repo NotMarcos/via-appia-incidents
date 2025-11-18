@@ -10,6 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { normalizeIncidentFormValue } from '../../shared/utils/normalize-incident';
+
 
 @Component({
   selector: 'app-incident-form',
@@ -79,35 +81,30 @@ export class IncidentFormComponent implements OnInit {
     });
   }
 
-  submit() {
-    if (this.form.invalid) return;
+submit() {
+  if (this.form.invalid) return;
 
-    const payload = {
-      ...this.form.value,
-      tags: this.form.value.tags
-        .split(',')
-        .map((t: string) => t.trim())
-        .filter((t: string) => t.length > 0)
-    };
+  const payload = normalizeIncidentFormValue(this.form.value);
 
-    this.loading = true;
+  this.loading = true;
 
-    if (this.isEditing) {
-      this.service.updateIncident(this.id!, payload).subscribe({
-        next: () => {
-          this.loading = false;
-          this.router.navigate(['/incidents']);
-        },
-        error: () => (this.loading = false)
-      });
-    } else {
-      this.service.createIncident(payload).subscribe({
-        next: () => {
-          this.loading = false;
-          this.router.navigate(['/incidents']);
-        },
-        error: () => (this.loading = false)
-      });
-    }
+  if (this.isEditing) {
+    this.service.updateIncident(this.id!, payload).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/incidents']);
+      },
+      error: () => (this.loading = false)
+    });
+  } else {
+    this.service.createIncident(payload).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/incidents']);
+      },
+      error: () => (this.loading = false)
+    });
   }
+}
+
 }

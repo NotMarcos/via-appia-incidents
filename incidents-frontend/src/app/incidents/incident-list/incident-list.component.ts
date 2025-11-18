@@ -8,6 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { buildQueryParams } from '../../shared/utils/query-utils';
+
 
 import { IncidentService, IncidentResponse } from '../../services/incident.service';
 
@@ -52,13 +54,21 @@ export class IncidentListComponent implements OnInit {
     this.load();
   }
 
-  load() {
-    this.incidentService.list(this.page, this.size, this.q, this.status, this.prioridade)
-      .subscribe(res => {
-        this.data = res.content;
-        this.totalElements = res.totalElements;
-      });
-  }
+load() {
+  const params = buildQueryParams(this.page, this.size, this.q, this.status, this.prioridade);
+
+  this.incidentService.list(
+    params.page,
+    params.size,
+    params.q,
+    params.status,
+    params.prioridade
+  ).subscribe(res => {
+    this.data = res.content;
+    this.totalElements = res.totalElements;
+  });
+}
+
 
   onPage(event: PageEvent) {
     this.page = event.pageIndex;

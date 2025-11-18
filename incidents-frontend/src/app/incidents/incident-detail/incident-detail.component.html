@@ -42,12 +42,12 @@
       <section class="row grid">
         <div>
           <label>Data de Abertura</label>
-          <p>{{ i.dataAbertura | date:'dd/MM/yyyy HH:mm' }}</p>
+          <p>{{ i.dataAbertura | appDate  }}</p>
         </div>
 
         <div>
           <label>Última Atualização</label>
-          <p>{{ i.dataAtualizacao | date:'dd/MM/yyyy HH:mm' }}</p>
+          <p>{{ i.dataAtualizacao | appDate  }}</p>
         </div>
       </section>
     </mat-card-content>
@@ -69,7 +69,7 @@
     </div>
 
     <div *ngFor="let c of comments" class="comment-item">
-      <p class="autor">{{ c.autor }} <span>{{ c.dataCriacao | date:'dd/MM/yyyy HH:mm' }}</span></p>
+      <p class="autor">{{ c.autor }} <span>{{ c.dataCriacao | appDate  }}</span></p>
       <p class="msg">{{ c.mensagem }}</p>
       <mat-divider></mat-divider>
     </div>

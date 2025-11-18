@@ -90,17 +90,40 @@ frontend/
 │
 ├── src/
 │   ├── app/
-│   │   ├── auth/                # Login, guarda, interceptors
-│   │   ├── core/                # Serviços centrais (ApiClient, AuthService)
-│   │   ├── incidents/           # CRUD completo de ocorrências
-│   │   ├── services/            # CommentService, UserService, etc.
-│   │   └── app.routes.ts        # Rotas e lazy loading
+│   │   ├── auth/                     # Login, guarda de rotas, interceptor JWT
+│   │   │   ├── login/
+│   │   │   ├── auth.guard.ts
+│   │   │   └── auth.interceptor.ts
+│   │   │
+│   │   ├── core/                     # Infra base
+│   │   │   ├── api-client.service.ts # Cliente HTTP genérico
+│   │   │   ├── auth.service.ts       # Controle de token
+│   │   │   └── models/               # Models: Incident, Comment, Page<T>, etc.
+│   │   │
+│   │   ├── incidents/                # Funcionalidades de incidentes
+│   │   │   ├── incident-list/        # Lista + filtros + paginação
+│   │   │   ├── incident-detail/      # Visualização + comentários
+│   │   │   └── incident-form/        # Criar e editar (formulário único)
+│   │   │
+│   │   ├── services/                 # Serviços específicos de domínio
+│   │   │   ├── incident.service.ts
+│   │   │   └── comment.service.ts
+│   │   │
+│   │   ├── shared/                   # Utilitários reaproveitáveis
+│   │   │   ├── pipes/
+│   │   │   │   └── app-date.pipe.ts  # Formatação consistente de datas
+│   │   │   └── utils/
+│   │   │       ├── normalize-incident.ts  # Normalização de formulários (DRY)
+│   │   │       └── query-utils.ts         # Builder de query params (DRY)
+│   │   │
+│   │   └── app.routes.ts             # Configuração de rotas
 │   │
-│   ├── environments/            # apiBaseUrl, configs por ambiente
-│   └── main.ts                  # Bootstrap da aplicação Angular
+│   ├── environments/                 # apiBaseUrl e configs por ambiente
+│   └── main.ts                       # Bootstrap da aplicação Angular
 │
-├── Dockerfile                   # Build de produção para Nginx
-└── angular.json                 # Configurações do projeto Angular
+├── Dockerfile                        # Build de produção (Nginx)
+└── angular.json                      # Configuração do workspace Angular
+
 ```
 
 ------------------------------------------------------------------------

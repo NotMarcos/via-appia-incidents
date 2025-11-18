@@ -15,6 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { AppDatePipe } from '../../shared/pipes/app-date.pipe';
 
 @Component({
   selector: 'app-incident-detail',
@@ -26,7 +27,8 @@ import { FormsModule } from '@angular/forms';
     MatDividerModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    AppDatePipe
   ],
   templateUrl: './incident-detail.component.html',
   styleUrls: ['./incident-detail.component.scss']
