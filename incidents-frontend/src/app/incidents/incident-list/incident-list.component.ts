@@ -1,53 +1,95 @@
 import { Component, OnInit } from '@angular/core';
-import { ApiClient } from '../../core/api-client.service';
-import { Incident } from '../../core/models/incident.model';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+
+import { IncidentService, IncidentResponse } from '../../services/incident.service';
 
 @Component({
   selector: 'app-incident-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
-  templateUrl: './incident-list.component.html'
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    // Material
+    MatTableModule,
+    MatPaginatorModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSelectModule,
+    MatInputModule,
+  ],
+  templateUrl: './incident-list.component.html',
+  styleUrls: ['./incident-list.component.scss']
 })
 export class IncidentListComponent implements OnInit {
-  incidents: Incident[] = [];
+
+  displayedColumns = ['titulo', 'prioridade', 'status', 'responsavelEmail', 'acoes'];
+  data: IncidentResponse[] = [];
+
+  // filtros
+  q: string = '';
+  status: string = '';
+  prioridade: string = '';
+
+  totalElements = 0;
   page = 0;
   size = 10;
-  total = 0;
-  q = new FormControl('');
-  statusFilter = new FormControl('');
-  loading = false;
 
-  constructor(private api: ApiClient) {}
+  constructor(
+    private incidentService: IncidentService,
+    private router: Router
+  ) {}
 
-  ngOnInit(): void { this.load(); }
-
-  load() {
-    this.loading = true;
-    const params = {
-      page: this.page,
-      size: this.size,
-      q: this.q.value,
-      status: this.statusFilter.value,
-      sort: 'dataAbertura,desc'
-    };
-    this.api.getPage('/incidents', params).subscribe({
-      next: (res: any) => {
-        this.incidents = res.content || res; // dependendo do backend Page<T> ou lista
-        this.total = res.totalElements ?? (this.incidents.length || 0);
-        this.loading = false;
-      },
-      error: () => this.loading = false
-    });
+  ngOnInit(): void {
+    this.load();
   }
 
-  nextPage() { this.page++; this.load(); }
-  prevPage() { if (this.page>0) { this.page--; this.load(); } }
+  load() {
+    this.incidentService.list(this.page, this.size, this.q, this.status, this.prioridade)
+      .subscribe(res => {
+        this.data = res.content;
+        this.totalElements = res.totalElements;
+      });
+  }
 
-  delete(id: string) {
-    if (!confirm('Confirma exclusão?')) return;
-    this.api.delete(`/incidents/${id}`).subscribe(() => this.load());
+  onPage(event: PageEvent) {
+    this.page = event.pageIndex;
+    this.size = event.pageSize;
+    this.load();
+  }
+
+  clearFilters() {
+    this.q = '';
+    this.status = '';
+    this.prioridade = '';
+    this.page = 0;
+    this.load();
+  }
+
+  create() {
+    this.router.navigate(['/incidents/new']);
+  }
+
+  view(id: string) {
+    this.router.navigate(['/incidents', id]);
+  }
+
+  edit(id: string) {
+    this.router.navigate(['/incidents', id, 'edit']);
+  }
+  remove(id: string) {
+    if (!confirm('Deseja realmente remover este incidente?')) return;
+
+    this.incidentService.delete(id).subscribe(() => {
+      this.load();
+    });
   }
 }

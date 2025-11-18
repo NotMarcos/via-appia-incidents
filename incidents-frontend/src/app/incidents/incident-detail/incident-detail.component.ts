@@ -1,37 +1,94 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+
 import { ApiClient } from '../../core/api-client.service';
 import { Incident } from '../../core/models/incident.model';
+import { Comment } from '../../core/models/comment.model';
+
+import { CommentService } from '../../services/comment.service';
+
+// Angular Material
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-incident-detail',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div *ngIf="incident">
-      <h2>{{ incident.titulo }}</h2>
-      <p>{{ incident.descricao }}</p>
-      <p>Status: {{ incident.status }}</p>
-      <p>Prioridade: {{ incident.prioridade }}</p>
-      <p>Responsável: {{ incident.responsavelEmail }}</p>
-    </div>
-  `
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatDividerModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule
+  ],
+  templateUrl: './incident-detail.component.html',
+  styleUrls: ['./incident-detail.component.scss']
 })
 export class IncidentDetailComponent implements OnInit {
-  incident!: Incident | null;
+
+  incident: Incident | null = null;
+  comments: Comment[] = [];
+
+  id!: string;
+  newComment: string = '';
 
   constructor(
     private api: ApiClient,
-    private route: ActivatedRoute
+    private commentService: CommentService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.api.getOne<Incident>(`/incidents/${id}`).subscribe(res => {
-        this.incident = res;
-      });
-    }
+    this.route.params.subscribe(params => {
+      this.id = params['id'];
+
+      this.loadIncident();
+      this.loadComments();
+    });
+  }
+
+  loadIncident() {
+    this.api.getOne<Incident>(`/incidents/${this.id}`).subscribe({
+      next: res => this.incident = res
+    });
+  }
+
+  loadComments() {
+    this.commentService.list(this.id).subscribe({
+      next: res => this.comments = res
+    });
+  }
+
+  addComment() {
+    if (!this.newComment.trim()) return;
+
+    const payload = {
+      autor: 'Usuário',
+      mensagem: this.newComment
+    };
+
+    this.commentService.create(this.id, payload).subscribe({
+      next: (created) => {
+        this.comments.unshift(created); 
+        this.newComment = '';
+      }
+    });
+  }
+
+
+  goBack() {
+    this.router.navigate(['/incidents']);
+  }
+
+  edit(id: string) {
+    this.router.navigate([`/incidents/${id}/edit`]);
   }
 }

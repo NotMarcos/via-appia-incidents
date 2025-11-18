@@ -37,8 +37,7 @@ public class IncidentService {
     }
 
     // ---------------------------------------------------
-    // LIST (COM CACHE)
-    // Cache depende de todos os filtros + paginação
+    // LIST (CACHE POR FILTROS + PAGINAÇÃO)
     // ---------------------------------------------------
     @Cacheable(
             value = "incidents",
@@ -61,21 +60,21 @@ public class IncidentService {
     }
 
     // ---------------------------------------------------
-    // GET (COM CACHE)
+    // GET (CACHE POR ID)
     // ---------------------------------------------------
     @Cacheable(
             value = "incidentById",
-            key = "#id"
+            key = "#root.args[0]" // correto mesmo sem debug info
     )
     public Incident get(UUID id) {
         return repo.findById(id).orElseThrow();
     }
 
     // ---------------------------------------------------
-    // UPDATE (INVALIDA CACHES RELACIONADOS)
+    // UPDATE — INVALIDA O CACHE DO INCIDENT EDITADO
     // ---------------------------------------------------
     @Caching(evict = {
-            @CacheEvict(value = "incidentById", key = "#id"),
+            @CacheEvict(value = "incidentById", key = "#root.args[0]"),
             @CacheEvict(value = "incidents", allEntries = true),
             @CacheEvict(value = "stats", allEntries = true)
     })
@@ -87,11 +86,11 @@ public class IncidentService {
     }
 
     // ---------------------------------------------------
-    // DELETE (INVALIDA TUDO RELACIONADO)
+    // DELETE — INVALIDA TUDO RELACIONADO AO INCIDENT
     // ---------------------------------------------------
     @Caching(evict = {
-            @CacheEvict(value = "incidentById", key = "#id"),
-            @CacheEvict(value = "commentsByIncident", key = "#id"),
+            @CacheEvict(value = "incidentById", key = "#root.args[0]"),
+            @CacheEvict(value = "commentsByIncident", key = "#root.args[0]"),
             @CacheEvict(value = "incidents", allEntries = true),
             @CacheEvict(value = "stats", allEntries = true)
     })
@@ -99,7 +98,9 @@ public class IncidentService {
         repo.deleteById(id);
     }
 
-    // DRY item A — Normalização de tags
+    // ---------------------------------------------------
+    // NORMALIZAÇÃO DE TAGS (DRY)
+    // ---------------------------------------------------
     private void normalizeTags(Incident i) {
         if (i.getTags() == null) return;
 

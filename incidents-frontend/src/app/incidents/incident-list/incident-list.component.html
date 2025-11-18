@@ -1,32 +1,91 @@
-<div>
-  <h2>Incidents</h2>
+<h1>Incidentes</h1>
 
-  <div>
-    <input [formControl]="q" placeholder="Buscar título/descrição" (keyup.enter)="load()" />
-    <select [formControl]="statusFilter" (change)="load()">
-      <option value="">Todos</option>
-      <option value="ABERTA">ABERTA</option>
-      <option value="EM_ANDAMENTO">EM_ANDAMENTO</option>
-      <option value="RESOLVIDA">RESOLVIDA</option>
-      <option value="CANCELADA">CANCELADA</option>
-    </select>
-    <button (click)="load()">Filtrar</button>
-    <a routerLink="/incidents/new">Criar</a>
-  </div>
+<div class="filters">
 
-  <div *ngIf="loading">Carregando…</div>
-  <ul>
-    <li *ngFor="let i of incidents">
-      <a [routerLink]="['/incidents', i.id]">{{ i.titulo }}</a>
-      - {{ i.prioridade }} - {{ i.status }}
-      <a [routerLink]="['/incidents', i.id, 'edit']">Editar</a>
-      <button (click)="delete(i.id)">Excluir</button>
-    </li>
-  </ul>
+  <mat-form-field appearance="outline">
+    <mat-label>Buscar</mat-label>
+    <input matInput [(ngModel)]="q" (keyup.enter)="load()">
+  </mat-form-field>
 
-  <div>
-    <button (click)="prevPage()" [disabled]="page===0">Anterior</button>
-    <span>Página {{ page + 1 }}</span>
-    <button (click)="nextPage()">Próxima</button>
-  </div>
+  <mat-form-field appearance="outline">
+    <mat-label>Status</mat-label>
+    <mat-select [(ngModel)]="status" (selectionChange)="load()">
+      <mat-option value="">Todos</mat-option>
+      <mat-option value="ABERTA">Aberta</mat-option>
+      <mat-option value="EM_ANDAMENTO">Em andamento</mat-option>
+      <mat-option value="RESOLVIDA">Resolvida</mat-option>
+      <mat-option value="CANCELADA">Cancelada</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Prioridade</mat-label>
+    <mat-select [(ngModel)]="prioridade" (selectionChange)="load()">
+      <mat-option value="">Todas</mat-option>
+      <mat-option value="BAIXA">Baixa</mat-option>
+      <mat-option value="MEDIA">Média</mat-option>
+      <mat-option value="ALTA">Alta</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <button mat-stroked-button color="primary" (click)="clearFilters()">
+    Limpar filtros
+  </button>
+
+  <button mat-flat-button color="primary" class="new-btn" (click)="create()">
+    Novo Incidente
+  </button>
+
 </div>
+
+<table mat-table [dataSource]="data" class="mat-elevation-z2">
+
+  <ng-container matColumnDef="titulo">
+    <th mat-header-cell *matHeaderCellDef>Título</th>
+    <td mat-cell *matCellDef="let row">{{ row.titulo }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="prioridade">
+    <th mat-header-cell *matHeaderCellDef>Prioridade</th>
+    <td mat-cell *matCellDef="let row">{{ row.prioridade }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="status">
+    <th mat-header-cell *matHeaderCellDef>Status</th>
+    <td mat-cell *matCellDef="let row">{{ row.status }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="responsavelEmail">
+    <th mat-header-cell *matHeaderCellDef>Responsável</th>
+    <td mat-cell *matCellDef="let row">{{ row.responsavelEmail }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="acoes">
+    <th mat-header-cell *matHeaderCellDef width="140">Ações</th>
+    <td mat-cell *matCellDef="let row">
+      <button mat-icon-button color="primary" (click)="view(row.id)">
+        <mat-icon>visibility</mat-icon>
+      </button>
+
+      <button mat-icon-button color="accent" (click)="edit(row.id)">
+        <mat-icon>edit</mat-icon>
+      </button>
+
+      <button mat-icon-button color="warn" (click)="remove(row.id)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+</table>
+
+<mat-paginator
+  [length]="totalElements"
+  [pageSize]="size"
+  [pageIndex]="page"
+  [pageSizeOptions]="[5, 10, 20]"
+  (page)="onPage($event)">
+</mat-paginator>

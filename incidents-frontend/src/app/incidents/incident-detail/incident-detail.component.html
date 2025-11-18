@@ -1,0 +1,94 @@
+<div class="container" *ngIf="incident as i">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ i.titulo }}</mat-card-title>
+      <mat-card-subtitle>ID: {{ i.id }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-divider></mat-divider>
+
+    <mat-card-content>
+      <section class="row">
+        <div class="col">
+          <label>Descrição</label>
+          <p>{{ i.descricao }}</p>
+        </div>
+      </section>
+
+      <section class="row grid">
+        <div>
+          <label>Status</label>
+          <span class="chip {{ i.status | lowercase }}">{{ i.status }}</span>
+        </div>
+
+        <div>
+          <label>Prioridade</label>
+          <span class="chip prio-{{ i.prioridade | lowercase }}">{{ i.prioridade }}</span>
+        </div>
+
+        <div>
+          <label>Responsável</label>
+          <p>{{ i.responsavelEmail }}</p>
+        </div>
+      </section>
+
+      <section class="row">
+        <label>Tags</label>
+        <div class="tags">
+          <span class="tag" *ngFor="let t of i.tags">{{ t }}</span>
+        </div>
+      </section>
+
+      <section class="row grid">
+        <div>
+          <label>Data de Abertura</label>
+          <p>{{ i.dataAbertura | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+
+        <div>
+          <label>Última Atualização</label>
+          <p>{{ i.dataAtualizacao | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+      </section>
+    </mat-card-content>
+
+    <mat-divider></mat-divider>
+
+    <mat-card-actions align="end">
+      <button mat-button color="primary" (click)="goBack()">Voltar</button>
+      <button mat-flat-button color="accent" (click)="edit(i.id)">Editar</button>
+    </mat-card-actions>
+  </mat-card>
+    <!-- COMENTÁRIOS -->
+  <mat-card class="comments-card">
+    <h3>Comentários</h3>
+
+    <!-- LISTA -->
+    <div *ngIf="comments.length === 0" class="empty">
+      Nenhum comentário ainda.
+    </div>
+
+    <div *ngFor="let c of comments" class="comment-item">
+      <p class="autor">{{ c.autor }} <span>{{ c.dataCriacao | date:'dd/MM/yyyy HH:mm' }}</span></p>
+      <p class="msg">{{ c.mensagem }}</p>
+      <mat-divider></mat-divider>
+    </div>
+
+    <!-- FORM -->
+    <form (ngSubmit)="addComment()" class="comment-form">
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Comentário</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="newComment"
+          name="mensagem"
+          required
+          maxlength="2000"
+        ></textarea>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" [disabled]="!newComment">Enviar</button>
+    </form>
+
+  </mat-card>
+</div>

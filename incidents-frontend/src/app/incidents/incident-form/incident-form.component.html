@@ -1,14 +1,55 @@
-<form [formGroup]="form" (ngSubmit)="save()">
-  <div><label>Título</label><input formControlName="titulo" /></div>
-  <div><label>Descrição</label><textarea formControlName="descricao"></textarea></div>
-  <div><label>Prioridade</label>
-    <select formControlName="prioridade"><option>BAIXA</option><option>MEDIA</option><option>ALTA</option></select>
-  </div>
-  <div><label>Status</label>
-    <select formControlName="status"><option>ABERTA</option><option>EM_ANDAMENTO</option><option>RESOLVIDA</option><option>CANCELADA</option></select>
-  </div>
-  <div><label>Responsável (email)</label><input formControlName="responsavelEmail" /></div>
-  <div><label>Tags (csv)</label><input formControlName="tags" /></div>
-  <button type="submit">Salvar</button>
-  <a routerLink="/incidents">Cancelar</a>
-</form>
+<mat-card>
+
+  <h1>{{ isEditing ? 'Editar Incidente' : 'Novo Incidente' }}</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Título</mat-label>
+      <input matInput formControlName="titulo">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Descrição</mat-label>
+      <textarea matInput rows="4" formControlName="descricao"></textarea>
+    </mat-form-field>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Prioridade</mat-label>
+        <mat-select formControlName="prioridade">
+          <mat-option *ngFor="let p of prioridades" [value]="p">{{ p }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option *ngFor="let s of statusList" [value]="s">{{ s }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Email do responsável</mat-label>
+      <input matInput formControlName="responsavelEmail">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Tags (separadas por vírgula)</mat-label>
+      <input matInput formControlName="tags">
+    </mat-form-field>
+
+    <div class="actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+        {{ isEditing ? 'Salvar Alterações' : 'Criar Incidente' }}
+      </button>
+
+      <button mat-button color="warn" routerLink="/incidents">
+        Cancelar
+      </button>
+    </div>
+
+  </form>
+
+</mat-card>

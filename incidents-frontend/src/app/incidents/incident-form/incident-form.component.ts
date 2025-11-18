@@ -1,45 +1,113 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ApiClient } from '../../core/api-client.service';
-import { Router, ActivatedRoute } from '@angular/router';
+import { FormBuilder, Validators, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+
+import { IncidentService, IncidentResponse } from '../../services/incident.service';
+
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-incident-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './incident-form.component.html'
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+
+    // Material
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatCardModule
+  ],
+  templateUrl: './incident-form.component.html',
+  styleUrls: ['./incident-form.component.scss']
 })
 export class IncidentFormComponent implements OnInit {
-  form = new FormGroup({
-    titulo: new FormControl('', [Validators.required, Validators.minLength(5), Validators.maxLength(120)]),
-    descricao: new FormControl('', [Validators.maxLength(5000)]),
-    prioridade: new FormControl('MEDIA', [Validators.required]),
-    status: new FormControl('ABERTA', [Validators.required]),
-    responsavelEmail: new FormControl('', [Validators.required, Validators.email]),
-    tags: new FormControl('')
-  });
-  id?: string;
 
-  constructor(private api: ApiClient, private router: Router, private route: ActivatedRoute){}
+  form!: FormGroup;
+  id: string | null = null;
+  isEditing = false;
+  loading = false;
 
-  ngOnInit(): void {
-    this.id = this.route.snapshot.paramMap.get('id') || undefined;
-    if (this.id) {
-      this.api.getOne(`/incidents/${this.id}`).subscribe((res: any) => {
-        this.form.patchValue({ ...res, tags: (res.tags || []).join(',') });
-      });
+  prioridades = ['BAIXA', 'MEDIA', 'ALTA'];
+  statusList = ['ABERTA', 'EM_ANDAMENTO', 'RESOLVIDA', 'CANCELADA'];
+
+  constructor(
+    private fb: FormBuilder,
+    private service: IncidentService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    this.form = this.fb.group({
+      titulo: ['', [Validators.required, Validators.minLength(5)]],
+      descricao: [''],
+      prioridade: ['', Validators.required],
+      status: ['', Validators.required],
+      responsavelEmail: ['', [Validators.required, Validators.email]],
+      tags: ['']
+    });
+
+    this.id = this.route.snapshot.paramMap.get('id');
+    this.isEditing = !!this.id;
+
+    if (this.isEditing) {
+      this.loadData();
     }
   }
 
-  save() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    const raw = this.form.value;
-    const body = {
-      ...raw,
-      tags: raw.tags ? raw.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []
+  loadData() {
+    this.service.getIncident(this.id!).subscribe({
+      next: (res: IncidentResponse) => {
+        this.form.patchValue({
+          titulo: res.titulo,
+          descricao: res.descricao,
+          prioridade: res.prioridade,
+          status: res.status,
+          responsavelEmail: res.responsavelEmail,
+          tags: res.tags.join(', ')
+        });
+      }
+    });
+  }
+
+  submit() {
+    if (this.form.invalid) return;
+
+    const payload = {
+      ...this.form.value,
+      tags: this.form.value.tags
+        .split(',')
+        .map((t: string) => t.trim())
+        .filter((t: string) => t.length > 0)
     };
-    const op = this.id ? this.api.put(`/incidents/${this.id}`, body) : this.api.post('/incidents', body);
-    op.subscribe(() => this.router.navigate(['/incidents']));
+
+    this.loading = true;
+
+    if (this.isEditing) {
+      this.service.updateIncident(this.id!, payload).subscribe({
+        next: () => {
+          this.loading = false;
+          this.router.navigate(['/incidents']);
+        },
+        error: () => (this.loading = false)
+      });
+    } else {
+      this.service.createIncident(payload).subscribe({
+        next: () => {
+          this.loading = false;
+          this.router.navigate(['/incidents']);
+        },
+        error: () => (this.loading = false)
+      });
+    }
   }
 }

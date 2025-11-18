@@ -4,6 +4,7 @@ import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.Service;
 import com.appia.incidents.entity.Comment;
 import com.appia.incidents.repository.CommentRepository;
+import com.appia.incidents.entity.Incident;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,28 +18,26 @@ public class CommentService {
         this.repo = repo;
     }
 
-    // ---------------------------------------------------
-    // CREATE COMMENT
-    // Ao criar um comentário, deve limpar:
-    // - comentários do incidente
-    // - lista de incidents (para refletir "atualizado há X tempo")
-    // - stats (qtde de comments, se houver)
-    // ---------------------------------------------------
     @Caching(evict = {
-            @CacheEvict(value = "commentsByIncident", key = "#c.incident.id"),
+            @CacheEvict(value = "commentsByIncident", key = "#p0"), // <-- CORREÇÃO
             @CacheEvict(value = "incidents", allEntries = true),
             @CacheEvict(value = "stats", allEntries = true)
     })
-    public Comment create(Comment c) {
+    public Comment create(UUID incidentId, Comment c) {
+
+        // Garante relacionamento
+        if (c.getIncident() == null) {
+            var incident = new Incident();
+            incident.setId(incidentId);
+            c.setIncident(incident);
+        }
+
         return repo.save(c);
     }
 
-    // ---------------------------------------------------
-    // OBTER COMENTÁRIOS POR INCIDENTE (CACHEADO)
-    // ---------------------------------------------------
     @Cacheable(
             value = "commentsByIncident",
-            key = "#incidentId"
+            key = "#p0"
     )
     public List<Comment> findByIncidentId(UUID incidentId) {
         return repo.findByIncident_IdOrderByDataCriacaoAsc(incidentId);

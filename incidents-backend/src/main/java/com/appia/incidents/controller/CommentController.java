@@ -69,10 +69,15 @@ public class CommentController {
 
             @Valid @RequestBody CommentRequestDTO dto
     ) {
+        // Carrega o incidente
         Incident incident = incidentService.get(incidentId);
 
+        // Mapper monta entidade já com o incidente vinculado
         var comment = mapper.toEntity(dto, incident);
 
-        return mapper.toDTO(commentService.create(comment));
+        // Agora sim: chama o service com incidentId E comment
+        var saved = commentService.create(incidentId, comment);
+
+        return mapper.toDTO(saved);
     }
 }
