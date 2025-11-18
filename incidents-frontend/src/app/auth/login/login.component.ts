@@ -1,33 +1,66 @@
-import { Component, signal } from '@angular/core';
-import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService } from '../auth.service';
-import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import { FormBuilder, Validators, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule
+  ]
 })
 export class LoginComponent {
-  form = new FormGroup({
-    username: new FormControl('', [Validators.required]),
-    password: new FormControl('', [Validators.required])
-  });
-  loading = signal(false);
-  error = signal<string | null>(null);
 
-  constructor(private auth: AuthService, private router: Router){}
+  loading = false;
+  errorMsg = '';
+  form: FormGroup;
 
-  onSubmit(){
+  constructor(
+    private fb: FormBuilder,
+    private auth: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
+    this.form = this.fb.group({
+      username: ['', Validators.required],
+      password: ['', Validators.required]
+    });
+  }
+
+  submit() {
+    this.errorMsg = '';
+
     if (this.form.invalid) return;
-    this.loading.set(true);
-    this.error.set(null);
-    const { username, password } = this.form.value as any;
-    this.auth.login(username, password).subscribe({
-      next: () => { this.loading.set(false); this.router.navigate(['/']); },
-      error: (err) => { this.loading.set(false); this.error.set(err?.error?.message || 'Falha no login'); }
+
+    this.loading = true;
+
+    const { username, password } = this.form.value;
+
+    this.auth.login(username!, password!).subscribe({
+      next: () => {
+        this.loading = false;
+
+        const redirectTo =
+          this.route.snapshot.queryParams['redirectTo'] || '/incidents';
+
+        this.router.navigate([redirectTo]);
+      },
+      error: () => {
+        this.loading = false;
+        this.errorMsg = 'Usuário ou senha inválidos.';
+      }
     });
   }
 }

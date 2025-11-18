@@ -262,6 +262,7 @@ sudo lsof -i :5432
 ### 🔸 3. Swagger mostra 401
 Gerar novo token JWT em /auth/login.
 ### 🔸4. Erro de CORS no frontend
+
 O backend tem CORS liberado em CorsConfig.
 Se necessário, adicione a origin do frontend.
 ------------------------------------------------------------------------
