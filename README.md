@@ -52,6 +52,15 @@ O sistema permite:
 -   Springdoc OpenAPI\
 -   Flyway (migrations)
 
+### 🔹 Frontend
+
+- Angular 17
+- Angular Material
+- Standalone Components
+- JWT Interceptor
+- Guards para rotas protegidas
+- Docker + NGINX para build/produção
+
 ### 🔹 Infra
 
 -   PostgreSQL 16\
@@ -60,7 +69,8 @@ O sistema permite:
 
 ------------------------------------------------------------------------
 
-## 🏗 Arquitetura do Projeto
+## 🏗 Arquitetura do Projeto 
+### 📌 Backend — Spring Boot (Java)
 
     src/main/java/com/appia/incidents
     │
@@ -74,6 +84,24 @@ O sistema permite:
     ├── security/         # JWT, filtros, roles
     ├── service/          # Regras de negócios + cache
     └── spec/             # Specifications (filtros dinâmicos)
+### 🎨 Frontend — Angular
+``` bash
+frontend/
+│
+├── src/
+│   ├── app/
+│   │   ├── auth/                # Login, guarda, interceptors
+│   │   ├── core/                # Serviços centrais (ApiClient, AuthService)
+│   │   ├── incidents/           # CRUD completo de ocorrências
+│   │   ├── services/            # CommentService, UserService, etc.
+│   │   └── app.routes.ts        # Rotas e lazy loading
+│   │
+│   ├── environments/            # apiBaseUrl, configs por ambiente
+│   └── main.ts                  # Bootstrap da aplicação Angular
+│
+├── Dockerfile                   # Build de produção para Nginx
+└── angular.json                 # Configurações do projeto Angular
+```
 
 ------------------------------------------------------------------------
 
@@ -97,14 +125,18 @@ Isso irá subir:
 | Serviço       | Porta |
 |---------------|-------|
 | API Backend   | 8080  |
+| Frontend Angular | 4200 |
 | PostgreSQL    | 5432  |
 
-### 3️⃣ Acessar a API
+### 3️⃣ Acessar a API e o Frontend
 
 -   Swagger UI:\
     👉 http://localhost:8080/swagger-ui/index.html\
 -   OpenAPI JSON:\
     👉 http://localhost:8080/v3/api-docs
+
+- Aplicação Web (Angular):  
+  👉 http://localhost:4200
 
 ### 4️⃣ Parar containers
 
@@ -118,25 +150,37 @@ docker-compose down
 
 ### **Pré-requisitos**
 
--   Java 17\
--   Maven 3+\
--   PostgreSQL rodando localmente
+
+- Java 17
+- Maven 3+
+- PostgreSQL rodando localmente
+- Node 18+
+- Angular CLI instalado globalmente (`npm install -g @angular/cli`)
 
 ### 1️⃣ Configurar variáveis no `application.properties` ou ambiente
 
 (seção abaixo)
 
-### 2️⃣ Rodar a aplicação
+### 2️⃣ Rodar o Backend
 
 ``` bash
 mvn spring-boot:run
 ```
+### 2️⃣ Rodar o Frontend
+
+``` bash
+cd incidents-frontend
+npm install
+npm start
+```
+
+
 
 ------------------------------------------------------------------------
 
 ## 🔐 Credenciais e fluxo de login
 
-### **Usuários padrão (criadas via Flyway)**
+### **Usuários padrão (criadas via Flyway e utilizadas também no frontend)**
 
 | Usuário | Senha    | Papel |
 | ------- | -------- | ----- |
