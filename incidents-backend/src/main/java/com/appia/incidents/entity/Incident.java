@@ -1,41 +1,73 @@
 package com.appia.incidents.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
+
 import java.time.Instant;
 import java.util.*;
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
+@Table(name = "incident")
 public class Incident {
-    @Id
-    @Column(length = 36)
-    private String id;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NotBlank
+    @Size(min = 5, max = 120)
     private String titulo;
 
-    @Column(length = 5000)
+    @Size(max = 5000)
     private String descricao;
 
-    private String prioridade; // BAIXA, MEDIA, ALTA
-    private String status; // ABERTA, EM_ANDAMENTO, RESOLVIDA, CANCELADA
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private Prioridade prioridade;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    @NotBlank
+    @Email
     private String responsavelEmail;
 
-    @Column(columnDefinition = "text")
-    private String tags;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "incident_tags",
+            joinColumns = @JoinColumn(name = "incident_id")
+    )
+    @Column(name = "tag")
+    private Set<String> tags = new HashSet<>();
 
     private Instant dataAbertura;
     private Instant dataAtualizacao;
 
+    @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     @PrePersist
     public void prePersist() {
-        if (id == null) id = UUID.randomUUID().toString();
-        dataAbertura = Instant.now();
-        dataAtualizacao = Instant.now();
+        Instant now = Instant.now();
+        this.dataAbertura = now;
+        this.dataAtualizacao = now;
+        this.status = (this.status == null ? Status.ABERTA : this.status);
     }
 
     @PreUpdate
     public void preUpdate() {
-        dataAtualizacao = Instant.now();
+        this.dataAtualizacao = Instant.now();
+    }
+
+    public enum Prioridade {
+        BAIXA, MEDIA, ALTA
+    }
+
+    public enum Status {
+        ABERTA, EM_ANDAMENTO, RESOLVIDA, CANCELADA
     }
 }

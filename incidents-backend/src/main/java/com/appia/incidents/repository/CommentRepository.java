@@ -1,8 +1,12 @@
 package com.appia.incidents.repository;
-import org.springframework.data.jpa.repository.JpaRepository;
-import com.appia.incidents.entity.Comment;
-import java.util.List;
 
-public interface CommentRepository extends JpaRepository<Comment, String> {
-    List<Comment> findByIncidentIdOrderByDataCriacaoAsc(String incidentId);
+import com.appia.incidents.entity.Comment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.UUID;
+
+public interface CommentRepository extends JpaRepository<Comment, UUID> {
+
+    List<Comment> findByIncident_IdOrderByDataCriacaoAsc(UUID incidentId);
 }

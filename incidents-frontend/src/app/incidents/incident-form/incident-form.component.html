@@ -1,0 +1,14 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div><label>Título</label><input formControlName="titulo" /></div>
+  <div><label>Descrição</label><textarea formControlName="descricao"></textarea></div>
+  <div><label>Prioridade</label>
+    <select formControlName="prioridade"><option>BAIXA</option><option>MEDIA</option><option>ALTA</option></select>
+  </div>
+  <div><label>Status</label>
+    <select formControlName="status"><option>ABERTA</option><option>EM_ANDAMENTO</option><option>RESOLVIDA</option><option>CANCELADA</option></select>
+  </div>
+  <div><label>Responsável (email)</label><input formControlName="responsavelEmail" /></div>
+  <div><label>Tags (csv)</label><input formControlName="tags" /></div>
+  <button type="submit">Salvar</button>
+  <a routerLink="/incidents">Cancelar</a>
+</form>

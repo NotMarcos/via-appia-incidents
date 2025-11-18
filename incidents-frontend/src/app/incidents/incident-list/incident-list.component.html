@@ -1,0 +1,32 @@
+<div>
+  <h2>Incidents</h2>
+
+  <div>
+    <input [formControl]="q" placeholder="Buscar título/descrição" (keyup.enter)="load()" />
+    <select [formControl]="statusFilter" (change)="load()">
+      <option value="">Todos</option>
+      <option value="ABERTA">ABERTA</option>
+      <option value="EM_ANDAMENTO">EM_ANDAMENTO</option>
+      <option value="RESOLVIDA">RESOLVIDA</option>
+      <option value="CANCELADA">CANCELADA</option>
+    </select>
+    <button (click)="load()">Filtrar</button>
+    <a routerLink="/incidents/new">Criar</a>
+  </div>
+
+  <div *ngIf="loading">Carregando…</div>
+  <ul>
+    <li *ngFor="let i of incidents">
+      <a [routerLink]="['/incidents', i.id]">{{ i.titulo }}</a>
+      - {{ i.prioridade }} - {{ i.status }}
+      <a [routerLink]="['/incidents', i.id, 'edit']">Editar</a>
+      <button (click)="delete(i.id)">Excluir</button>
+    </li>
+  </ul>
+
+  <div>
+    <button (click)="prevPage()" [disabled]="page===0">Anterior</button>
+    <span>Página {{ page + 1 }}</span>
+    <button (click)="nextPage()">Próxima</button>
+  </div>
+</div>

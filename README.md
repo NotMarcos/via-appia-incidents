@@ -1,76 +1,153 @@
-# Via Appia Test
+# 🚀 Via Appia --- Incident Management API
 
-## Descrição
+API de gerenciamento de incidentes desenvolvida como parte de um desafio
+técnico.\
+Implementada em **Java 17 + Spring Boot 3**, com autenticação **JWT**,
+cache **Caffeine**, documentação **OpenAPI/Swagger**, banco
+**PostgreSQL**, e totalmente **dockerizada**.
 
-Projeto de teste para gerenciamento de incidentes, desenvolvido em **Java 17 + Spring Boot 3**, com banco **PostgreSQL**, autenticação JWT e documentação **OpenAPI/Swagger**.
+------------------------------------------------------------------------
 
----
+## 📚 Índice
 
-## Tecnologias
+1.  Descrição
+2.  Tecnologias
+3.  Arquitetura do Projeto
+4.  Execução com Docker (recomendado)
+5.  Execução local (sem Docker)
+6.  Credenciais e fluxo de login
+7.  Variáveis de ambiente
+8.  Banco de Dados
+9.  Documentação OpenAPI
+10. Principais Endpoints
+11. Reset do banco
+12. Troubleshooting
 
-- Java 17
-- Spring Boot 3
-    - Spring Web
-    - Spring Data JPA
-    - Spring Security
-    - Spring Validation
-    - Spring Cache
-    - Springdoc OpenAPI
-- PostgreSQL 16
-- Flyway (para migrations)
-- Docker & Docker Compose
-- JWT para autenticação
-- BCrypt para senha (opcional)
+------------------------------------------------------------------------
 
----
+## 📝 Descrição
 
-## Requisitos Técnicos
+O sistema permite:
 
-- Java 17+
-- Spring Boot 3+
-- Banco PostgreSQL
-- Endpoints protegidos via JWT
-- Paginação com Pageable/Page<T>
-- Padronização de erros: 400/401/403/404/409/422/500
-- OpenAPI/Swagger disponível em:
-    - `/swagger-ui/index.html`
-    - `/v3/api-docs`
+-   Criar, consultar, editar e remover **incidentes**
+-   Alterar status de incidentes (PATCH)
+-   Listar e criar **comentários** relacionados a incidentes
+-   Autenticação JWT com roles `READ` e `WRITE`
+-   Paginação, filtros e busca textual
+-   Cache com Caffeine para otimização de leitura
 
----
+------------------------------------------------------------------------
 
-## Executando o Projeto
+## 🛠 Tecnologias
 
-### 1. Clonar repositório
+### 🔹 Backend
 
-```bash
-git clone <URL_DO_REPOSITORIO>
-cd via-appia-test
+-   Java 17\
+-   Spring Boot 3\
+-   Spring Web\
+-   Spring Data JPA\
+-   Spring Security (JWT)\
+-   Spring Validation\
+-   Spring Cache (Caffeine)\
+-   Springdoc OpenAPI\
+-   Flyway (migrations)
+
+### 🔹 Infra
+
+-   PostgreSQL 16\
+-   Docker & Docker Compose\
+-   Maven 3+
+
+------------------------------------------------------------------------
+
+## 🏗 Arquitetura do Projeto
+
+    src/main/java/com/appia/incidents
+    │
+    ├── config/           # CORS, security, OpenAPI, cache
+    ├── controller/       # Endpoints REST
+    ├── dto/              # Request/response DTOs
+    ├── entity/           # Entidades JPA
+    ├── exception/        # Handler global de exceções
+    ├── mapper/           # Conversão DTO <-> Entity
+    ├── repository/       # Repositórios JPA
+    ├── security/         # JWT, filtros, roles
+    ├── service/          # Regras de negócios + cache
+    └── spec/             # Specifications (filtros dinâmicos)
+
+------------------------------------------------------------------------
+
+## 🐳 Execução com Docker (recomendado)
+
+### 1️⃣ Clonar o repositório
+
+``` bash
+git clone https://github.com/NotMarcos/via-appia-incidents
+cd via-appia-incidents
 ```
 
-### 2. Suba os containers:
+### 2️⃣ Subir com docker-compose
 
-```bash
+``` bash
 docker-compose up --build
 ```
 
-Isso irá:
+Isso irá subir:
 
-- Subir o banco PostgreSQL (incidents_db)
-- Subir o backend Spring Boot (incidents_api)
-- Verifique se o backend está rodando:
-- Swagger UI: http://localhost:8080/swagger-ui/index.html
-- JSON OpenAPI: http://localhost:8080/v3/api-docs
+| Serviço       | Porta |
+|---------------|-------|
+| API Backend   | 8080  |
+| PostgreSQL    | 5432  |
 
-### 🔑 Credenciais de teste
+### 3️⃣ Acessar a API
 
-| Usuário | Senha     | Papel |
-|---------|-----------|-------|
-| admin   | admin123  | WRITE |
-| viewer  | admin123  | READ  |
+-   Swagger UI:\
+    👉 http://localhost:8080/swagger-ui/index.html\
+-   OpenAPI JSON:\
+    👉 http://localhost:8080/v3/api-docs
 
-### 🛠 Fluxo de autenticação
-1. Faça o ligin para obter o token JWT:
-```bash
+### 4️⃣ Parar containers
+
+``` bash
+docker-compose down
+```
+
+------------------------------------------------------------------------
+
+## ▶ Execução local (sem Docker)
+
+### **Pré-requisitos**
+
+-   Java 17\
+-   Maven 3+\
+-   PostgreSQL rodando localmente
+
+### 1️⃣ Configurar variáveis no `application.properties` ou ambiente
+
+(seção abaixo)
+
+### 2️⃣ Rodar a aplicação
+
+``` bash
+mvn spring-boot:run
+```
+
+------------------------------------------------------------------------
+
+## 🔐 Credenciais e fluxo de login
+
+### **Usuários padrão (criadas via Flyway)**
+
+| Usuário | Senha    | Papel |
+| ------- | -------- | ----- |
+| admin   | admin123 | WRITE |
+| viewer  | admin123 | READ  |
+
+------------------------------------------------------------------------
+
+### 1️⃣ Login
+
+``` http
 POST /auth/login
 Content-Type: application/json
 
@@ -79,52 +156,112 @@ Content-Type: application/json
   "password": "admin123"
 }
 ```
-Resposta:
-```bash
+
+### Resposta:
+
+``` json
 {
-  "token": "<JWT_TOKEN_AQUI>"
+  "token": "JWT_TOKEN_AQUI"
 }
 ```
-2. Use o token para acessar endpoints autenticados:
-```bash
-GET /incidents
-Authorization: Bearer <JWT_TOKEN_AQUI>
+
+### 2️⃣ Usar o token
+
+``` http
+Authorization: Bearer JWT_TOKEN_AQUI
 ```
-3. Para criar um incidente (usuário com papel WRITE):
-```bash
-POST /incidents
-Authorization: Bearer <JWT_TOKEN_AQUI>
-Content-Type: application/json
 
-{
-  "titulo": "Incidente teste",
-  "descricao": "Descrição do incidente",
-  "prioridade": "ALTA",
-  "status": "OPEN",
-  "responsavelEmail": "admin@app.com",
-  "tags": "teste"
-}
+------------------------------------------------------------------------
+
+## ⚙ Variáveis de ambiente
+
+    DB_HOST=postgres
+    DB_PORT=5432
+    DB_NAME=incidents_db
+    DB_USER=incidents_user
+    DB_PASS=incidents_pass
+
+    JWT_SECRET=MEU_SEGREDO_123
+    JWT_EXPIRATION=86400000
+
+------------------------------------------------------------------------
+
+## 🗄 Banco de Dados
+
+A aplicação cria tudo automaticamente via Flyway:
+- Tabelas
+- Índices
+- Inserts iniciais (usuários admin/viewer)
+
+## Configuração (Docker)
+
+| Campo | Valor          |
+|-------|----------------|
+| Host  | localhost      |
+| Porta | 5432           |
+| Banco | incidents_db   |
+| User  | incidents_user |
+| Pass  | incidents_pass |
+
+------------------------------------------------------------------------
+
+## 📘 Documentação OpenAPI
+
+Após subir os containers:
+
+-   Swagger UI: http://localhost:8080/swagger-ui/index.html\
+-   OpenAPI JSON: http://localhost:8080/v3/api-docs
+
+------------------------------------------------------------------------
+
+## 🔧 Principais Endpoints
+
+### 🔐 Autenticação
+| Método | Endpoint     | Descrição |
+|--------|--------------|-----------|
+| POST   | /auth/login  | Gera JWT  |
+
+### 🟦 Incidentes
+| Método | Endpoint                 | Descrição          |
+|--------|---------------------------|---------------------|
+| GET    | /incidents               | Listar com filtros |
+| POST   | /incidents               | Criar              |
+| GET    | /incidents/{id}          | Buscar por ID      |
+| PUT    | /incidents/{id}          | Atualizar          |
+| PATCH  | /incidents/{id}/status   | Alterar status     |
+| DELETE | /incidents/{id}          | Excluir            |
+
+### 🟨 Comentários
+| Método | Endpoint                         | Descrição         |
+|--------|-----------------------------------|--------------------|
+| GET    | /incidents/{id}/comments          | Listar comentários |
+| POST   | /incidents/{id}/comments          | Criar comentário   |
+
+------------------------------------------------------------------------
+
+## 🔄 Reset do Banco
+
+Para reset completo:
+``` bash
+docker-compose down -v
 ```
-### 📦Banco de dados
-- Host: localhost (quando rodando com Docker)
-- Porta: 5432
-- Banco: incidents_db
-- Usuário: incidents_user
-- Senha: incidents_pass
 
-O banco é populado automaticamente pelo Flyway no primeiro build.
+------------------------------------------------------------------------
 
-### 🧩 Endpoints principais
-| Método | Endpoint              | Descrição                   |
-|--------|----------------------|-----------------------------|
-| POST   | /auth/login           | Login e obtenção do JWT     |
-| GET    | /incidents            | Listar incidentes           |
-| POST   | /incidents            | Criar novo incidente        |
-| PUT    | /incidents/{id}       | Atualizar incidente         |
-| DELETE | /incidents/{id}       | Remover incidente           |
+## ❗ Troubleshooting
 
-### ⚠️ Observações
-
-- O token JWT expira conforme configuração em application.properties (jwt.expiration-ms)
-- Usuários com papel READ não podem criar ou atualizar incidentes
-- Erros padronizados: 400, 401, 403, 404, 409, 422, 500
+### 🔸 1. API não sobe (porta em uso)
+```bash
+sudo lsof -i :8080
+kill -9 <PID>
+```
+### 🔸 2. Postgres não sobe
+```bash
+sudo lsof -i :5432
+```
+### 🔸 3. Swagger mostra 401
+Gerar novo token JWT em /auth/login.
+### 🔸4. Erro de CORS no frontend
+O backend tem CORS liberado em CorsConfig.
+Se necessário, adicione a origin do frontend.
+------------------------------------------------------------------------

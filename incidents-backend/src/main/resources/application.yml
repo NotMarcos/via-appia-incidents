@@ -20,7 +20,7 @@ spring:
     type: caffeine
     cache-names: incidents, incidentById, stats, commentsByIncident
     caffeine:
-      spec: maximumSize=500,expireAfterWrite=60s
+      spec: maximumSize=10000,expireAfterWrite=60s
 
 jwt:
   secret: "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF"
