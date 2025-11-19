@@ -1,6 +1,6 @@
 package com.appia.incidents.entity;
 
 public enum Role {
-    READ,
-    WRITE
+    READ,   // Pode apenas visualizar
+    WRITE   // Pode criar, editar, excluir e comentar
 }

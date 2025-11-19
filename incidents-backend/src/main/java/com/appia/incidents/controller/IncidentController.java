@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @RestController
@@ -39,11 +40,24 @@ public class IncidentController {
             description = "Lista incidentes com filtros opcionais e paginação."
     )
     public Page<IncidentResponseDTO> list(
-            @Parameter(description = "Filtrar por status")
+
+            @Parameter(description = "Filtrar por status (ABERTA, EM_ANDAMENTO, RESOLVIDA, CANCELADA)")
             @RequestParam(name = "status", required = false) String status,
 
-            @Parameter(description = "Filtrar por prioridade")
+            @Parameter(description = "Filtrar por prioridade (BAIXA, MEDIA, ALTA)")
             @RequestParam(name = "prioridade", required = false) String prioridade,
+
+            @Parameter(description = "Filtrar por responsável (email)")
+            @RequestParam(name = "responsavel", required = false) String responsavel,
+
+            @Parameter(description = "Filtrar por tag")
+            @RequestParam(name = "tag", required = false) String tag,
+
+            @Parameter(description = "Filtrar ocorrências após esta data")
+            @RequestParam(name = "start", required = false) Instant start,
+
+            @Parameter(description = "Filtrar ocorrências antes desta data")
+            @RequestParam(name = "end", required = false) Instant end,
 
             @Parameter(description = "Busca textual em título, descrição e tags")
             @RequestParam(name = "q", required = false) String q,
@@ -54,7 +68,7 @@ public class IncidentController {
             @Parameter(description = "Tamanho da página (default 10)")
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        return svc.list(status, prioridade, q, page, size)
+        return svc.list(status, prioridade, responsavel, tag, start, end, q, page, size)
                 .map(mapper::toDTO);
     }
 
@@ -106,26 +120,12 @@ public class IncidentController {
     @PreAuthorize("hasRole('WRITE')")
     @Operation(summary = "Alterar status do incidente")
     public IncidentResponseDTO changeStatus(
-            @Parameter(description = "ID do incidente")
-            @PathVariable(name = "id") UUID id,
-
+            @PathVariable UUID id,
             @RequestBody ChangeStatusDTO dto
     ) {
-        Incident incident = svc.get(id);
-        incident.setStatus(dto.status());
-
-        Incident updated = svc.update(id,
-                new IncidentRequestDTO(
-                        incident.getTitulo(),
-                        incident.getDescricao(),
-                        incident.getPrioridade(),
-                        incident.getStatus(),
-                        incident.getResponsavelEmail(),
-                        incident.getTags().stream().toList()
-                )
+        return mapper.toDTO(
+                svc.changeStatus(id, dto.status())
         );
-
-        return mapper.toDTO(updated);
     }
 
     // ---------------------------------------------------------

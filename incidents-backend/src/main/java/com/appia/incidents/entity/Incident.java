@@ -55,7 +55,9 @@ public class Incident {
         Instant now = Instant.now();
         this.dataAbertura = now;
         this.dataAtualizacao = now;
-        this.status = (this.status == null ? Status.ABERTA : this.status);
+        if (this.status == null) {
+            this.status = Status.ABERTA;
+        }
     }
 
     @PreUpdate

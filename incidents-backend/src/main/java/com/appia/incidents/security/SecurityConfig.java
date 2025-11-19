@@ -117,7 +117,21 @@ public class SecurityConfig {
                             .setAuthentication(auth);
 
                 } catch (JwtException e) {
-                    throw new UnauthorizedException("Token inválido");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+
+                    String body = """
+                {
+                  "timestamp": "%s",
+                  "status": 401,
+                  "error": "Unauthorized",
+                  "message": "Token inválido ou expirado",
+                  "path": "%s"
+                }
+                """.formatted(java.time.Instant.now(), request.getRequestURI());
+
+                    response.getWriter().write(body);
+                    return;
                 }
             }
 

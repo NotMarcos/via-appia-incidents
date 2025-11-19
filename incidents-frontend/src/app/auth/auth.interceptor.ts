@@ -13,59 +13,53 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const token = auth.getToken();
 
-  // Se não tem token, segue a requisição normal
-  if (!token) {
-    return next(req).pipe(
-      catchError((err) => handleError(err, router, snack, auth))
-    );
-  }
+  // Aplica header de Authorization se houver token
+  const request = token
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
 
-  // Clonar com Authorization header
-  const cloned = req.clone({
-    setHeaders: { Authorization: `Bearer ${token}` }
-  });
+  const handleErrorFn = (error: HttpErrorResponse) =>
+    handleError(error, router, snack, auth);
 
-  return next(cloned).pipe(
-    catchError((err) => handleError(err, router, snack, auth))
-  );
+  return next(request).pipe(catchError(handleErrorFn));
 };
 
-// -------------------------------------------------------------
-// Função de tratamento de erros global
-// -------------------------------------------------------------
+// ----------------------------------------------------------------
+// Tratamento global de erros
+// ----------------------------------------------------------------
 function handleError(
   error: HttpErrorResponse,
   router: Router,
   snack: MatSnackBar,
   auth: AuthService
 ) {
+  const backendMsg = error?.error?.message ?? error.message;
+
   switch (error.status) {
     case 0:
-      snack.open('Não foi possível conectar ao servidor.', 'OK', {
-        duration: 3000
-      });
+      snack.open('Não foi possível conectar ao servidor.', 'OK', { duration: 3000 });
       break;
 
     case 400:
-      snack.open('Requisição inválida.', 'OK', { duration: 3000 });
+      snack.open(`Erro de requisição: ${backendMsg}`, 'OK', { duration: 3000 });
       break;
 
     case 401:
-      snack.open('Sessão expirada. Faça login novamente.', 'OK', {
-        duration: 3000
-      });
+      snack.open('Sessão expirada. Faça login novamente.', 'OK', { duration: 3000 });
       auth.logout();
       router.navigate(['/login']);
       break;
 
     case 403:
-      snack.open('Você não tem permissão para executar essa ação.', 'OK', {
-        duration: 3000
-      });
+      snack.open('Você não tem permissão para esta ação.', 'OK', { duration: 3000 });
       break;
 
     case 404:
       snack.open('Recurso não encontrado.', 'OK', { duration: 3000 });
+      break;
+
+    case 422:
+      snack.open(`Dados inválidos: ${backendMsg}`, 'OK', { duration: 3000 });
       break;
 
     case 500:
@@ -73,7 +67,7 @@ function handleError(
       break;
 
     default:
-      snack.open(`Erro: ${error.message}`, 'OK', { duration: 3000 });
+      snack.open(`Erro: ${backendMsg}`, 'OK', { duration: 3000 });
   }
 
   return throwError(() => error);

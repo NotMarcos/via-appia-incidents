@@ -21,7 +21,7 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
 
         AppUser user = userRepo.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new UnauthorizedException("Credenciais inválidas"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new UnauthorizedException("Credenciais inválidas");

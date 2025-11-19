@@ -24,14 +24,13 @@ public class AuthController {
         this.authService = authService;
     }
 
-    // ---------------------------------------------------------
-    // LOGIN
-    // ---------------------------------------------------------
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Realizar login",
-            description = "Autentica o usuário e retorna um token JWT válido para acessar os demais endpoints."
+            description = """
+                Autentica o usuário e retorna um token JWT para acessar os demais endpoints.
+                """
     )
     @ApiResponse(responseCode = "200", description = "Login realizado com sucesso")
     @ApiResponse(responseCode = "401", description = "Credenciais inválidas")

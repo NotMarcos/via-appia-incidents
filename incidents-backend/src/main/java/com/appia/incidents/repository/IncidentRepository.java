@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface IncidentRepository
         extends JpaRepository<Incident, UUID>, JpaSpecificationExecutor<Incident> {
+
+    boolean existsByTituloIgnoreCase(String titulo);
 }

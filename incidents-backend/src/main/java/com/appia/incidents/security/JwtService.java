@@ -16,6 +16,11 @@ public class JwtService {
 
     public JwtService(@Value("${jwt.secret}") String secret,
                       @Value("${jwt.expiration-ms}") long expirationMs) {
+
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalArgumentException("jwt.secret deve ter pelo menos 32 caracteres");
+        }
+
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.expirationMs = expirationMs;
     }
@@ -23,6 +28,7 @@ public class JwtService {
     public String generateToken(String subject, String role) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + expirationMs);
+
         return Jwts.builder()
                 .setSubject(subject)
                 .claim("role", role)
@@ -33,6 +39,10 @@ public class JwtService {
     }
 
     public Jws<Claims> parseToken(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token);
     }
 }
+

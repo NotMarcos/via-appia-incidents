@@ -30,7 +30,7 @@ public class Comment {
     @Column(nullable = false, length = 2000)
     private String mensagem;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private Instant dataCriacao;
 
     @PrePersist
@@ -38,3 +38,4 @@ public class Comment {
         this.dataCriacao = Instant.now();
     }
 }
+

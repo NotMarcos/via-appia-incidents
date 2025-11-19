@@ -154,7 +154,7 @@ Isso irá subir:
 ### 3️⃣ Acessar a API e o Frontend
 
 -   Swagger UI:\
-    👉 http://localhost:8080/swagger-ui/index.html\
+    👉 http://localhost:8080/swagger-ui/index.html
 -   OpenAPI JSON:\
     👉 http://localhost:8080/v3/api-docs
 
